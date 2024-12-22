@@ -3,3 +3,4 @@ PyPDF2
 huggingface-hub
 uvicorn
 python-dotenv
+python-multipart
