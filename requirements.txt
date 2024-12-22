@@ -1,4 +1,3 @@
 fastapi
 PyPDF2
 huggingface-hub
-dotenv
