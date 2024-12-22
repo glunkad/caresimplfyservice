@@ -12,7 +12,7 @@
 				"auth": {
 					"type": "bearer",
 					"bearer": {
-						"token": "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"
+						"token": ""
 					}
 				},
 				"method": "POST",
