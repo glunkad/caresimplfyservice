@@ -1,0 +1,72 @@
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
+from pdf_extractor import extract_text_from_pdf
+from huggingface_client import send_to_huggingface_api_with_client
+
+app = FastAPI()
+
+# Store extracted text globally for chatting
+extracted_text_context = ""
+
+@app.get("/")
+async def root():
+    """Root endpoint to display a welcome message."""
+    return {"message": "Hello! The API is running. Use the /upload endpoint to upload a PDF file and /chat to chat with the bot."}
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Endpoint to handle PDF file upload, text extraction, and summary generation."""
+    global extracted_text_context
+
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed.")
+
+    try:
+        # Extract text from the uploaded PDF
+        pdf_file = file.file
+        extracted_text_context = extract_text_from_pdf(pdf_file)
+
+        # Generate a short summary using Hugging Face API
+        summary_messages = [
+            {"role": "system", "content": "Summarize the following text in a concise manner."},
+            {"role": "user", "content": extracted_text_context}
+        ]
+        summary = send_to_huggingface_api_with_client(summary_messages)
+
+        # Generate sample questions based on the PDF content
+        questions_messages = [
+            {"role": "system", "content": "Based on the following text, provide a few sample questions someone might ask."},
+            {"role": "user", "content": extracted_text_context}
+        ]
+        sample_questions = send_to_huggingface_api_with_client(questions_messages)
+
+        return JSONResponse(content={
+            "message": "PDF uploaded and processed successfully.",
+            "summary": summary,
+            "sample_questions": sample_questions,
+            "extracted_text": extracted_text_context
+        }, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chat")
+async def chat_with_bot(question: str):
+    """Endpoint to chat with the bot based on the uploaded PDF content."""
+    global extracted_text_context
+
+    if not extracted_text_context:
+        raise HTTPException(status_code=400, detail="No PDF content available. Please upload a PDF first using the /upload endpoint.")
+
+    try:
+        # Construct messages for the chat
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant. Use the following context to answer questions: " + extracted_text_context},
+            {"role": "user", "content": question}
+        ]
+
+        # Send the question and context to Hugging Face API
+        api_response = send_to_huggingface_api_with_client(messages)
+
+        return JSONResponse(content={"question": question, "answer": api_response}, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
