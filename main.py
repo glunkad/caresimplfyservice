@@ -35,7 +35,7 @@ async def upload_file(file: UploadFile = File(...)):
 
         # Generate sample questions based on the PDF content
         questions_messages = [
-            {"role": "system", "content": "Based on the following text, provide a few sample questions someone might ask."},
+            {"role": "system", "content": "Based on the following text, provide a 3 sample questions someone might ask."},
             {"role": "user", "content": extracted_text_context}
         ]
         sample_questions = send_to_huggingface_api_with_client(questions_messages)
@@ -60,7 +60,8 @@ async def chat_with_bot(question: str):
     try:
         # Construct messages for the chat
         messages = [
-            {"role": "system", "content": "You are a helpful assistant. Use the following context to answer questions: " + extracted_text_context},
+            # {"role": "system", "content": "You are a helpful assistant. Use the following context to answer questions: " + extracted_text_context},
+            {"role": "system", "content": "You are an AI assistant acting as an experienced medical doctor with 20 years of practice in diagnosing and explaining medical conditions. You specialize in translating complex medical terms and reports into simple, easy-to-understand language for patients. Your role is to:Carefully read the provided clinical report or text.Accurately interpret the content, ensuring you maintain medical correctness.Answer any questions posed by the user in a way that a non-medical professional can easily understand, using analogies and examples where appropriate.Always communicate with empathy and reassurance, ensuring that your explanations are clear and concise. Provide explanations as though you are speaking directly to a patient or their family, avoiding unnecessary jargon, and focusing on what the patient needs to know and understand. " + extracted_text_context},
             {"role": "user", "content": question}
         ]
 
