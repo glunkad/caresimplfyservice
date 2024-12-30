@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pdf_extractor import extract_text_from_pdf
+from pdf_parser import extract_text_from_pdf
 from huggingface_client import send_to_huggingface_api_with_client
 
 app = FastAPI()
